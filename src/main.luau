@@ -1,27 +1,7 @@
 -- // Load
-print("\n")
-
 if not game:IsLoaded() then
-    print("[*] Waiting for game to load..")
     game.Loaded:Wait()
 end
-
-local env = getgenv()
-if not env then
-    warn("[-] Failed to get enviroment variable!")
-    return
-end
-
-local orion = {}
-
-if env.orionCommands then
-    print("[*] Cleaning up previous instance..")
-    env.orionCommands.cleanup()
-end
-
-print("[*] Loading Orion commands..")
-
-env.orionCommands = orion
 
 -- // Local Cache
 local string_sub = string.sub
@@ -32,7 +12,6 @@ local table_unpack = table.unpack
 local table_insert = table.insert
 
 local print = print
-local warn = warn
 
 local typeof = typeof
 local loadstring = loadstring
@@ -44,7 +23,6 @@ local vortexSuccess, vortex = pcall(function()
 end)
 
 if not vortexSuccess then
-    warn("[-] Failed to load Vortex library!")
     return
 end
 
@@ -58,8 +36,6 @@ local currentGameId: number = game.GameId
 local baseUrl: string = "https://raw.githubusercontent.com/zkyoi/Orion/refs/heads/main/src/"
 local gamesUrl: string = baseUrl .. "games/"
 local configUrl: string = gamesUrl .. "config.luau"
-
-local chatted: RBXScriptConnection
 
 local configSuccess, config = pcall(function()
     return loadstring(game:HttpGet(configUrl))()
@@ -76,10 +52,6 @@ local function createCommand(commandName: string, description: string, arguments
         arguments = arguments,
         callback = callback
     }
-end
-
-function orion.cleanup(): ()
-    vortex.disconnect(chatted)
 end
 
 -- // Commands
@@ -124,12 +96,8 @@ if configSuccess and config and typeof(config) == "table" and config[currentGame
 
         if gameSuccess and typeof(gameModule) == "function" then
             gameModule(createCommand, vortex)
-        else
-            warn("[-] Failed to load a specific game module!")
         end
     end
-else
-    warn("[-] Failed to load config with specific game!")
 end
 
 -- // Command Functions
@@ -161,8 +129,4 @@ local function parseCommand(message: string): ()
 end
 
 -- // Connections
-chatted = localPlayer.Chatted:Connect(parseCommand)
-
-print("[+] Loaded successfully!")
-
--- I'm planning on cleaning some of the code up and improving it later
+localPlayer.Chatted:Connect(parseCommand)
