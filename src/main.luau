@@ -14,6 +14,7 @@ local string_format = string.format
 local table_unpack = table.unpack
 local table_insert = table.insert
 local table_concat = table.concat
+local table_remove = table.remove
 
 local print = print
 
@@ -156,6 +157,10 @@ local function parseCommand(message: string): ()
     end
 
     if #full == 0 then return end
+
+    if full[1] == "/e" then
+        table_remove(full, 1)
+    end
 
     if string_sub(full[1], 1, 1) == prefix then
         local command: string = string_sub(full[1], 2, #full[1])
