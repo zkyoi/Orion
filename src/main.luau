@@ -17,6 +17,7 @@ local table_concat = table.concat
 local table_remove = table.remove
 
 local print = print
+local warn = warn
 
 local typeof = typeof
 local loadstring = loadstring
@@ -128,12 +129,17 @@ if configSuccess and config and typeof(config) == "table" and config[currentGame
     local moduleUrl: string = gamesUrl .. config[currentGameId]
 
     if moduleUrl then
+        print("Found game module for current game! Attempting to load...")
+
         local gameSuccess, gameModule = pcall(function()
             return loadstring(game:HttpGet(moduleUrl))()
         end)
 
         if gameSuccess and typeof(gameModule) == "function" then
             gameModule(createCommand, vortex)
+            print("Loaded game module!")
+        else
+            warn("Failed to load game module.")
         end
     end
 end
@@ -175,5 +181,7 @@ localPlayer.Chatted:Connect(parseCommand)
 
 orion.createCommand = createCommand
 orion.vortex = vortex
+
+executeCommand("help")
 
 return orion
