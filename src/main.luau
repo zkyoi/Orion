@@ -124,26 +124,6 @@ createCommand("unview", "Unviews a player", {}, function(): ()
     vortex.unview()
 end)
 
--- // Fetch Game Commands
-if configSuccess and config and typeof(config) == "table" and config[currentGameId] then
-    local moduleUrl: string = gamesUrl .. config[currentGameId]
-
-    if moduleUrl then
-        print("Found game module for current game! Attempting to load...")
-
-        local gameSuccess, gameModule = pcall(function()
-            return loadstring(game:HttpGet(moduleUrl))()
-        end)
-
-        if gameSuccess and typeof(gameModule) == "function" then
-            gameModule(orion, vortex)
-            print("Loaded game module!")
-        else
-            warn("Failed to load game module.")
-        end
-    end
-end
-
 -- // Command Functions
 function orion.executeCommand(commandName: string, arguments: { string }?): ()
     if not commandName then return end
@@ -173,6 +153,26 @@ local function parseCommand(message: string): ()
         local arguments: { string } = { table_unpack(full, 2, #full) }
 
         orion.executeCommand(command, arguments)
+    end
+end
+
+-- // Fetch Game Commands
+if configSuccess and config and typeof(config) == "table" and config[currentGameId] then
+    local moduleUrl: string = gamesUrl .. config[currentGameId]
+
+    if moduleUrl then
+        print("Found game module for current game! Attempting to load...")
+
+        local gameSuccess, gameModule = pcall(function()
+            return loadstring(game:HttpGet(moduleUrl))()
+        end)
+
+        if gameSuccess and typeof(gameModule) == "function" then
+            gameModule(orion, vortex)
+            print("Loaded game module!")
+        else
+            warn("Failed to load game module.")
+        end
     end
 end
 
