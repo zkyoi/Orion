@@ -65,6 +65,20 @@ function orion.executeCommand(commandName: string, arguments: { string }?): ()
     task.spawn(command.callback, arguments)
 end
 
+function orion.createCommand(commandName: string, description: string, arguments: { string }, callback: ( arguments: { string }? ) -> ()): ()
+    commands[string_lower(commandName)] = {
+        name = commandName,
+        description = description,
+        arguments = arguments,
+        callback = callback
+    }
+end
+
+-- // Local Function Variables
+local createCommand = orion.createCommand
+local executeCommand = orion.executeCommand
+
+-- // Parse
 local function parseCommand(message: string): ()
     if not message or message == "" then return end
     local full: { string } = {}
@@ -87,15 +101,7 @@ local function parseCommand(message: string): ()
     end
 end
 
-function orion.createCommand(commandName: string, description: string, arguments: { string }, callback: ( arguments: { string }? ) -> ()): ()
-    commands[string_lower(commandName)] = {
-        name = commandName,
-        description = description,
-        arguments = arguments,
-        callback = callback
-    }
-end
-
+-- // Extra Help Info Commands
 local function printCommandHelp(command): ()
     local name: string = command.name
     local description: string = command.description
@@ -118,10 +124,6 @@ local function printAllCommandsHelp(): ()
         printCommandHelp(command)
     end
 end
-
--- // Local Function Variables
-local createCommand = orion.createCommand
-local executeCommand = orion.executeCommand
 
 -- // Commands
 createCommand("test", "This is a test command!", { "argument1", "argument2" }, function(arguments): ()
