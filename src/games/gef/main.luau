@@ -19,11 +19,15 @@ local locations: { Vector3 | CFrame } = {
 }
 
 return function (orion, vortex)
-    orion.createCommand("game", "Prints the game you are currently in", {}, function(): ()
+    -- // Local Function Variables
+    local createCommand = orion.createCommand
+
+    -- // Game Commands
+    createCommand("game", "Prints the game you are currently in", {}, function(): ()
         print(string_format("Game Name: %s", gameName))
     end)
 
-    orion.createCommand("give", "Gives you an item", { "item" }, function(arguments): ()
+    createCommand("give", "Gives you an item", { "item" }, function(arguments): ()
         local itemName: string = arguments[1]
         if not itemName then return end
         local item: (MeshPart | Instance)?
