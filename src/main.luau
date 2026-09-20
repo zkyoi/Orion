@@ -136,7 +136,7 @@ if configSuccess and config and typeof(config) == "table" and config[currentGame
         end)
 
         if gameSuccess and typeof(gameModule) == "function" then
-            gameModule(createCommand, vortex)
+            gameModule(orion, vortex)
             print("Loaded game module!")
         else
             warn("Failed to load game module.")
@@ -145,7 +145,7 @@ if configSuccess and config and typeof(config) == "table" and config[currentGame
 end
 
 -- // Command Functions
-local function executeCommand(commandName: string, arguments: { string }?): ()
+function orion.executeCommand(commandName: string, arguments: { string }?): ()
     if not commandName then return end
     arguments = arguments or {}
 
@@ -172,7 +172,7 @@ local function parseCommand(message: string): ()
         local command: string = string_sub(full[1], 2, #full[1])
         local arguments: { string } = { table_unpack(full, 2, #full) }
 
-        executeCommand(command, arguments)
+        orion.executeCommand(command, arguments)
     end
 end
 
@@ -182,6 +182,6 @@ localPlayer.Chatted:Connect(parseCommand)
 orion.createCommand = createCommand
 orion.vortex = vortex
 
-executeCommand("help")
+orion.executeCommand("help")
 
 return orion
