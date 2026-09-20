@@ -55,7 +55,39 @@ local function parseStringToBoolean(booleanString: string): boolean
     return string_lower(booleanString) == "true"
 end
 
-local function createCommand(commandName: string, description: string, arguments: { string }, callback: ( arguments: { string }? ) -> ()): ()
+-- // Command Functions
+function orion.executeCommand(commandName: string, arguments: { string }?): ()
+    if not commandName then return end
+    arguments = arguments or {}
+
+    local command = commands[string_lower(commandName)]
+    if not command then return end
+    task.spawn(command.callback, arguments)
+end
+
+local function parseCommand(message: string): ()
+    if not message or message == "" then return end
+    local full: { string } = {}
+
+    for match: string in string_gmatch(message, "%S+") do
+        table_insert(full, match)
+    end
+
+    if #full == 0 then return end
+
+    if full[1] == "/e" then
+        table_remove(full, 1)
+    end
+
+    if string_sub(full[1], 1, 1) == prefix then
+        local command: string = string_sub(full[1], 2, #full[1])
+        local arguments: { string } = { table_unpack(full, 2, #full) }
+
+        executeCommand(command, arguments)
+    end
+end
+
+function orion.createCommand(commandName: string, description: string, arguments: { string }, callback: ( arguments: { string }? ) -> ()): ()
     commands[string_lower(commandName)] = {
         name = commandName,
         description = description,
@@ -86,6 +118,10 @@ local function printAllCommandsHelp(): ()
         printCommandHelp(command)
     end
 end
+
+-- // Local Function Variables
+local createCommand = orion.createCommand
+local executeCommand = orion.executeCommand
 
 -- // Commands
 createCommand("test", "This is a test command!", { "argument1", "argument2" }, function(arguments): ()
@@ -124,38 +160,6 @@ createCommand("unview", "Unviews a player", {}, function(): ()
     vortex.unview()
 end)
 
--- // Command Functions
-function orion.executeCommand(commandName: string, arguments: { string }?): ()
-    if not commandName then return end
-    arguments = arguments or {}
-
-    local command = commands[string_lower(commandName)]
-    if not command then return end
-    task.spawn(command.callback, arguments)
-end
-
-local function parseCommand(message: string): ()
-    if not message or message == "" then return end
-    local full: { string } = {}
-
-    for match: string in string_gmatch(message, "%S+") do
-        table_insert(full, match)
-    end
-
-    if #full == 0 then return end
-
-    if full[1] == "/e" then
-        table_remove(full, 1)
-    end
-
-    if string_sub(full[1], 1, 1) == prefix then
-        local command: string = string_sub(full[1], 2, #full[1])
-        local arguments: { string } = { table_unpack(full, 2, #full) }
-
-        orion.executeCommand(command, arguments)
-    end
-end
-
 -- // Fetch Game Commands
 if configSuccess and config and typeof(config) == "table" and config[currentGameId] then
     local moduleUrl: string = gamesUrl .. config[currentGameId]
@@ -163,15 +167,27 @@ if configSuccess and config and typeof(config) == "table" and config[currentGame
     if moduleUrl then
         print("Found game module for current game! Attempting to load...")
 
-        local gameSuccess, gameModule = pcall(function()
-            return loadstring(game:HttpGet(moduleUrl))()
+        local fetchSuccess, rawCode = pcall(function()
+            return game:HttpGet(moduleUrl)
         end)
 
-        if gameSuccess and typeof(gameModule) == "function" then
-            gameModule(orion, vortex)
-            print("Loaded game module!")
+        if fetchSuccess and rawCode then
+            local compileSuccess, chunk = pcall(loadstring, rawCode)
+
+            if compileSuccess and typeof(chunk) == "function" then
+                local runSuccess, gameModuleClosure = pcall(chunk)
+
+                if runSuccess and typeof(gameModuleClosure) == "function" then
+                    gameModuleClosure(orion, vortex)
+                    print("Loaded game module!")
+                else
+                    warn("Game module did not return valid initialization function.")
+                end
+            else
+                warn("Failed to compile game module code.")
+            end
         else
-            warn("Failed to load game module.")
+            warn("Failed to download game module from URL.")
         end
     end
 end
@@ -182,6 +198,6 @@ localPlayer.Chatted:Connect(parseCommand)
 orion.createCommand = createCommand
 orion.vortex = vortex
 
-orion.executeCommand("help")
+executeCommand("help")
 
 return orion
