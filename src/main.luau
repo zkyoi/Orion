@@ -23,7 +23,7 @@ local typeof = typeof
 local loadstring = loadstring
 
 -- // Vortex Library
-local _version: string = "v1.4"
+local _version: string = "v1.4.1"
 local vortexSuccess, vortex = pcall(function()
     return loadstring(game:HttpGet("https://github.com/zkyoi/Vortex/releases/download/" .. _version .. "/main.luau", true))()
 end)
